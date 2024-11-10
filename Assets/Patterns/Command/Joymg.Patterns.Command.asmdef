@@ -1,0 +1,18 @@
+{
+    "name": "Joymg.Patterns.Command",
+    "rootNamespace": "",
+    "references": [
+        "GUID:7b5c0e40d8d000c4ab7acb58decc58fa",
+        "GUID:8adcfbcfa1f3ada479dee4985defc01f",
+        "GUID:13a6fdc14ca9df84eb8019bc66fa9e5d"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

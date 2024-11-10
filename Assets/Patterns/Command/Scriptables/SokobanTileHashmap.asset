@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a713c96aae43e6048b8d515e03a37424, type: 3}
+  m_Name: SokobanTileHashmap
+  m_EditorClassIdentifier: 
+  Entries:
+  - TileType: 0
+    TileBases:
+    - {fileID: 11400000, guid: 0443e99008e90824e9e9430fdb8eea84, type: 2}
+    - {fileID: 11400000, guid: 51fb037c8dbe0e84e977b7f136876dec, type: 2}
+    - {fileID: 11400000, guid: d0c40791cfab55144b58cf39cf9bfa51, type: 2}
+  - TileType: 1
+    TileBases:
+    - {fileID: 11400000, guid: 884b0cb3d3fc84d488cf8b05c2417305, type: 2}
+    - {fileID: 11400000, guid: 3a208224b68ba024d8baaad50835a1a2, type: 2}
+    - {fileID: 11400000, guid: 86a654745f929aa419e861dac536c410, type: 2}
+    - {fileID: 11400000, guid: 0933241064f28614b95f5f748b3a747b, type: 2}
+  - TileType: 2
+    TileBases:
+    - {fileID: 11400000, guid: 95a3774654e8bef41ac9e8ff787e6c6a, type: 2}
+    - {fileID: 11400000, guid: 6d43d6716b15f52479f85f66317725ad, type: 2}
+    - {fileID: 11400000, guid: 5dbad25909e419b4da6128bd2022ca28, type: 2}
+    - {fileID: 11400000, guid: 751fb10ac303cac48bf3a1f01e744e11, type: 2}
+    - {fileID: 11400000, guid: 9f391c1550519234094b9fe06ae1d767, type: 2}
+  - TileType: 3
+    TileBases:
+    - {fileID: 11400000, guid: a0d059654702b704aab157d1d55079c9, type: 2}
+    - {fileID: 11400000, guid: cccff1d31dfa84d4690f7d994fb37f06, type: 2}
+    - {fileID: 11400000, guid: 50b7146c44442fe42a7a9913a7947f2f, type: 2}
+    - {fileID: 11400000, guid: 1c2761cc2ad03b244b10998acc3005fd, type: 2}
+    - {fileID: 11400000, guid: b6ca2e100d718ba41bd7b80a2d1a1f89, type: 2}
+  - TileType: 4
+    TileBases:
+    - {fileID: 11400000, guid: 9f5d1184bbe8bba4ab87efbe9b30b482, type: 2}
