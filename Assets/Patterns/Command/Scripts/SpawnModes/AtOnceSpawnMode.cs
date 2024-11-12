@@ -6,7 +6,7 @@ namespace Joymg.Patterns.Command
 {
     public class AtOnceSpawnMode : SpawnMode
     {
-        public AtOnceSpawnMode(string map, char[] ids) : base(map, ids)
+        public AtOnceSpawnMode(Map map, char[] ids) : base(map, ids)
         {
         }
 
@@ -31,20 +31,25 @@ namespace Joymg.Patterns.Command
         public override List<Vector3> GenerateOrder()
         {
             List<Vector3> order = new List<Vector3>();
-            int width = _map.IndexOf('\n') + 1;
             Vector3 position;
-            for (int i = 0; i < _map.Length; i++)
+            int width = _map.Cells.Length;
+            for (int i = 0; i < width; i++)
             {
-                foreach (var id in _ids)
+                int height = _map.Cells[i].Length;
+                for (int j = 0; j < height; j++)
                 {
-                    if (_map[i] == id)
+                    foreach (var id in _ids)
                     {
-                        position = new Vector3(i % width, (i / width));
-                        position.z -= 15;
-                        order.Add(position + (Vector3)Offset);
+                        Map.Cell cell = _map.Cells[i][j];
+                        if (cell.character == id)
+                        {
+                            position = new Vector3(cell.coordinates.X, cell.coordinates.Y, -15);
+                            order.Add(position + (Vector3)Offset);
+                        }
                     }
                 }
             }
+
             return order;
         }
 

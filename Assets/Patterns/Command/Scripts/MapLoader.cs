@@ -35,10 +35,6 @@ namespace Joymg.Patterns.Command
 
         #region Fields
 
-        #endregion
-
-        #region Unity Methods
-
         public string[] levels;
         [Header("TileMaps")] public Tilemap backgroundTilemap;
         public Tilemap staticTilemap;
@@ -64,6 +60,10 @@ namespace Joymg.Patterns.Command
 
         private SokobanSpawner _wallSpawner;
         private SokobanSpawner _boxSpawner;
+        #endregion
+
+        #region Unity Methods
+
 
         #endregion
 
@@ -76,25 +76,23 @@ namespace Joymg.Patterns.Command
             _boxSpawner = new SokobanSpawner();
         }
 
-        public void LoadLevel(int levelIndex)
+        public Map LoadLevel(int levelIndex)
         {
             string level = levels[levelIndex];
+            Map map = new Map(level);
 
-            string[] levelParts = level.Split('\n');
-            int heigth = levelParts.Length;
-            int width = levelParts[0].Length;
+            _wallSpawner.Init(map, new char[]{'#'});
+            _boxSpawner.Init(map, new char[]{'$','*'});
 
-            _wallSpawner.Init(level, new char[]{'#'});
-            _boxSpawner.Init(level, new char[]{'$','*'});
-
-            for (int i = 0; i < heigth; i++)
+            for (int i = 0; i < map.Cells.Length; i++)
             {
-                for (int j = 0; j < levelParts[i].Length; j++)
+                int width = map.Cells[i].Length;
+                for (int j = 0; j < width; j++)
                 {
                     Vector3Int position = new Vector3Int(j, i);
                     backgroundTilemap.SetTile(position,
                         tileHashmap.Entries.First(entry => entry.TileType == TileType.Floor).TileBases[1]);
-                    char currentChar = levelParts[i][j];
+                    char currentChar = map.Cells[i][j].character;
                     TileType tileType = characterHashmap.FirstOrDefault(entry => entry.character == currentChar)
                         .tileType;
                     switch (currentChar)
@@ -125,6 +123,8 @@ namespace Joymg.Patterns.Command
                     }
                 }
             }
+
+            return map;
         }
 
         public Player InstantiatePlayer()

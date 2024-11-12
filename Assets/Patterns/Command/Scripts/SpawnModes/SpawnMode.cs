@@ -17,10 +17,10 @@ namespace Joymg.Patterns.Command
         #endregion
 
         #region Fields
-        protected string _map;
+        protected Map _map;
         protected char[] _ids;
 
-        protected SpawnMode(string map, char[] ids)
+        protected SpawnMode(Map map, char[] ids)
         {
             _map = map;
             _ids = ids;

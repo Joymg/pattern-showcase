@@ -34,7 +34,7 @@ namespace Joymg.Patterns.Command
         #endregion
 
         #region Methods
-        public void Init(string map, char[] ids)
+        public void Init(Map map, char[] ids)
         {
             SpawnType mode = SpawnType.Snake;
             //SpawnType mode = (SpawnType)Random.Range(0, Enum.GetNames(typeof(SpawnType)).Length-1);
