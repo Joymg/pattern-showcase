@@ -60,6 +60,8 @@ public class ContiguousSpawnMode : SpawnMode
             for (int j = 0; j < height; j++)
             {
                 Map.Cell cell = _map.Cells[i][j];
+                if (!_ids.ToList().Contains(cell.character))
+                    continue;
                 if (_checkedCells.Contains(cell))
                     continue;
 
@@ -88,13 +90,13 @@ public class ContiguousSpawnMode : SpawnMode
             if (spawnDepth.cell.character != id) continue;
 
             _checkedCells.Add(spawnDepth.cell);
-
+            List<char> ids = _ids.ToList();
             for (int i = 0; i < 4; i++)
             {
                 Direction direction = (Direction)i;
-                if (spawnDepth.cell.TryGetNeighbour(direction, out Map.Cell neighbourCell))
+                if (spawnDepth.cell.TryGetNeighbour(direction, out Map.Cell neighbourCell) && ids.Contains(neighbourCell.character))
                 {
-                    _pendingCells.Add(new SpawnDepth(_map.GetCell(neighbourCell.coordinates.Step(direction)), spawnDepth.level + 1));
+                    _pendingCells.Add(new SpawnDepth(neighbourCell, spawnDepth.level + 1));
                 }
             }
 

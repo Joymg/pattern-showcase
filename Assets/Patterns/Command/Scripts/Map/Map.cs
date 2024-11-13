@@ -41,7 +41,7 @@ namespace Joymg.Patterns.Command
         private bool AreValidCoordinates(Coordinates coordinates)
         {
             return coordinates.X >= 0 && coordinates.X < cells.Length && coordinates.Y >= 0 &&
-                   coordinates.Y >= cells[coordinates.X].Length;
+                   coordinates.Y < cells[coordinates.X].Length;
         }
 
         public bool TryGetCell(Coordinates coordinates, out Cell cell)

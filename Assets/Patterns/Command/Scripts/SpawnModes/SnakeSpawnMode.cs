@@ -11,7 +11,7 @@ namespace Joymg.Patterns.Command
 {
     public class SnakeSpawnMode : SpawnMode
     {
-        private const float Z_OFFSET = 1.5f;
+        private const float Z_OFFSET = 2f;
 
         public SnakeSpawnMode(Map map, char[] ids) : base(map, ids)
         {
@@ -50,13 +50,8 @@ namespace Joymg.Patterns.Command
                     row.Reverse();
                 for (int j = 0; j < row.Count; j++)
                 {
-                    Map.Cell cell = _map.Cells[i][j];
-                    if (cell.character == '\n')
-                    {
-                        i += width;
-                        jumps++;
-                    }
-
+                    Map.Cell cell = row[j];
+                    
                     foreach (var id in _ids)
                     {
                         if (cell.character != id) continue;
@@ -66,6 +61,10 @@ namespace Joymg.Patterns.Command
                         zValue -= Z_OFFSET;
                     }
                 }
+                
+                zValue -= 2;
+                jumps++;
+                
             }
 
             return order;
