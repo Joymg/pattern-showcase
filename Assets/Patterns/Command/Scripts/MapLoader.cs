@@ -58,8 +58,8 @@ namespace Joymg.Patterns.Command
             new Entry('@', TileType.Player),
         };
 
-        private SokobanSpawner _wallSpawner;
-        private SokobanSpawner _boxSpawner;
+        [SerializeField] private SokobanSpawner _wallSpawner;
+        [SerializeField] private SokobanSpawner _boxSpawner;
         #endregion
 
         #region Unity Methods
@@ -160,6 +160,10 @@ namespace Joymg.Patterns.Command
                 .SetIntoPosition(_wallSpawner.spawnPoints[count].z / -15f));
 
             count = _boxSpawner.entities.Count - 1;
+
+            if (count<= 0)
+                yield break; 
+            
             for (int i = 0; i < count; i++)
             {
                 StartCoroutine(_boxSpawner.entities[i].SetIntoPosition(_boxSpawner.spawnPoints[i].z / -15f));

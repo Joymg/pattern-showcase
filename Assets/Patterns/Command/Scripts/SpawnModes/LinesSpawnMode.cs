@@ -26,7 +26,7 @@ namespace Joymg.Patterns.Command
                         Map.Cell cell = _map.Cells[i][j];
                         if (cell.character != id) continue;
 
-                        position = new Vector3(cell.coordinates.X, cell.coordinates.Y, -15 + zOffset);
+                        position = new Vector3(cell.coordinates.Y, cell.coordinates.X, -15 + zOffset);
                         order.Add(position + (Vector3)Offset);
                         zOffset -= 1;
                     }

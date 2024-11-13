@@ -30,7 +30,7 @@ namespace Joymg.Patterns.Command
 
         private void CreateCell(int x, int y, char character)
         {
-            Cell cell = cells[x][y] = new Cell(new Coordinates(y, x), character, this);
+            Cell cell = cells[x][y] = new Cell(new Coordinates(x, y), character, this);
         }
 
         public Cell GetCell(Coordinates coordinates)

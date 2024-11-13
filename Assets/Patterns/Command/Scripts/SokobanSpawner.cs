@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -7,6 +6,7 @@ using Random = UnityEngine.Random;
 // Author : Joy
 namespace Joymg.Patterns.Command
 {
+    [Serializable]
     public class SokobanSpawner
     {
         #region Enums
@@ -26,7 +26,8 @@ namespace Joymg.Patterns.Command
         #region Fields
         public List<Vector3> spawnPoints = new();
         public List<Entity> entities = new();
-        private SpawnMode spawnMode;
+        [SerializeField] private SpawnMode spawnMode;
+        [SerializeField] private SpawnType spawnType;
 
         #endregion
 
@@ -36,9 +37,9 @@ namespace Joymg.Patterns.Command
         #region Methods
         public void Init(Map map, char[] ids)
         {
-            SpawnType mode = SpawnType.Snake;
-            //SpawnType mode = (SpawnType)Random.Range(0, Enum.GetNames(typeof(SpawnType)).Length-1);
-            switch (mode)
+            //spawnType = SpawnType.Contiguous;
+            spawnType = (SpawnType)Random.Range(0, Enum.GetNames(typeof(SpawnType)).Length);
+            switch (spawnType)
             {
                 case SpawnType.AtOnce:
                     spawnMode = new AtOnceSpawnMode(map, ids);
@@ -59,6 +60,7 @@ namespace Joymg.Patterns.Command
 
         public void InstantiateElements(Entity prefab, SokobanHashmap.Entry entry)
         {
+            //Todo: use random tile
             int index = Random.Range(0, entry.TileBases.Length + 1);
 
             for (int i = 0; i < spawnPoints.Count; i++)
