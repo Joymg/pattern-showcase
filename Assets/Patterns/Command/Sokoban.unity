@@ -491,6 +491,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5957fe0540133443a29b5d823d56a15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  level: 2
   _mapLoader: {fileID: 1952390712}
   _player: {fileID: 0}
 --- !u!4 &891074499
@@ -1026,6 +1027,14 @@ MonoBehaviour:
   boxPrefab: {fileID: -4317639390984331567, guid: b785f816b65720c4e9b4ce24f1e1f408, type: 3}
   wallPrefab: {fileID: -4317639390984331567, guid: ca80d466a802cd04287928544a14370a, type: 3}
   tileHashmap: {fileID: 11400000, guid: 2646e6e3c7fce7749a39a016a0a84efa, type: 2}
+  _wallSpawner:
+    spawnPoints: []
+    entities: []
+    spawnType: 0
+  _boxSpawner:
+    spawnPoints: []
+    entities: []
+    spawnType: 0
 --- !u!1 &1955945248
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,6 +1,7 @@
 using System;
 using Joymg.Patterns.Command;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -10,9 +11,9 @@ namespace Joymg.Patterns.Command
 {
     public class SnakeSpawnMode : SpawnMode
     {
-        private const float Z_OFFSET = 1.5f;
+        private const float Z_OFFSET = 2f;
 
-        public SnakeSpawnMode(string map, char[] ids) : base(map, ids)
+        public SnakeSpawnMode(Map map, char[] ids) : base(map, ids)
         {
         }
 
@@ -37,31 +38,33 @@ namespace Joymg.Patterns.Command
         public override List<Vector3> GenerateOrder()
         {
             int jumps = 0;
-            int width = _map.IndexOf('\n') + 1;
             float zValue = 0f;
             Vector3 position;
             List<Vector3> order = new List<Vector3>();
             
-            for (int i = 0; i < _map.Length;)
+            int width = _map.Cells.Length;
+            for (int i = 0; i < width; i++)
             {
-                var currentCharacter = _map[i];
-                if (currentCharacter == '\n')
+                List<Map.Cell> row = _map.Cells[i].ToList();
+                if (jumps % 2 == 1)
+                    row.Reverse();
+                for (int j = 0; j < row.Count; j++)
                 {
-                    i += width;
-                    jumps++;
+                    Map.Cell cell = row[j];
+                    
+                    foreach (var id in _ids)
+                    {
+                        if (cell.character != id) continue;
+
+                        position = new Vector3(cell.coordinates.Y, cell.coordinates.X, -15 + zValue);
+                        order.Add(position + (Vector3)Offset);
+                        zValue -= Z_OFFSET;
+                    }
                 }
                 
-                foreach (var id in _ids)
-                {
-                    if (currentCharacter != id) continue;
-                    
-                    position = new Vector3((i % width), i / width, zValue);
-                    position.z -= 15;
-                    order.Add(position + (Vector3)Offset);
-                    zValue -= Z_OFFSET;
-                }
-
-                i = (jumps % 2 == 0) ? i + 1 : i - 1;
+                zValue -= 2;
+                jumps++;
+                
             }
 
             return order;

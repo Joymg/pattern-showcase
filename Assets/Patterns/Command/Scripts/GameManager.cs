@@ -15,8 +15,12 @@ namespace Joymg.Patterns.Command
         #endregion
 
         #region Fields
+
+        public int level;
+        
         [SerializeField] private MapLoader _mapLoader;
         [SerializeField] private Player _player;
+        [SerializeField] private Map _map;
 
         //Movement keys
         private ICommand upCommand;
@@ -38,7 +42,7 @@ namespace Joymg.Patterns.Command
 
 
             _mapLoader.Init();
-            _mapLoader.LoadLevel(2);
+            _map = _mapLoader.LoadLevel(level);
 
             _mapLoader.InstantiateWalls();
             _mapLoader.InstantiateBoxes();

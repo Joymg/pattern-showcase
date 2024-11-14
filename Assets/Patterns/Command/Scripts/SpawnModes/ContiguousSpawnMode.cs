@@ -6,14 +6,14 @@ using UnityEngine;
 // Author : 
 public class ContiguousSpawnMode : SpawnMode
 {
-    private class Cell
+    private class SpawnDepth
     {
-        public readonly Vector2 position;
+        public readonly Map.Cell cell;
         public int level;
 
-        public Cell(Vector2 position, int level)
+        public SpawnDepth(Map.Cell cell, int level)
         {
-            this.position = position;
+            this.cell = cell;
             this.level = level;
         }
     }
@@ -28,17 +28,17 @@ public class ContiguousSpawnMode : SpawnMode
 
     #region Fields
 
-    private List<Vector2> _checkedCells;
-    private List<Cell> _pendingCells;
+    private List<Map.Cell> _checkedCells;
+    private List<SpawnDepth> _pendingCells;
     private int _height;
     private int _width;
     private readonly float _zOffset = 1.5f;
 
 
-    public ContiguousSpawnMode(string map, char[] ids) : base(map, ids)
+    public ContiguousSpawnMode(Map map, char[] ids) : base(map, ids)
     {
-        _checkedCells = new List<Vector2>();
-        _pendingCells = new List<Cell>();
+        _checkedCells = new List<Map.Cell>();
+        _pendingCells = new List<SpawnDepth>();
     }
 
     #endregion
@@ -51,59 +51,64 @@ public class ContiguousSpawnMode : SpawnMode
 
     public override List<Vector3> GenerateOrder()
     {
-        Vector3 position;
         List<Vector3> order = new List<Vector3>();
 
-        _width = _map.IndexOf('\n') + 1;
-        _height = (_map.Length / _width) + 1;
-
-        for (int i = 0; i < _map.Length; i++)
+        int width = _map.Cells.Length;
+        for (int i = 0; i < width; i++)
         {
-            position = new Vector3(i % _width, (i / _width));
-            position.z -= 15;
-            if (_checkedCells.Contains(position))
-                continue;
-
-            _pendingCells.Add(new Cell(position, 0));
-
-            while (_pendingCells.Count > 0)
+            int height = _map.Cells[i].Length;
+            for (int j = 0; j < height; j++)
             {
-                Cell cell = _pendingCells.ElementAt(0);
-                CheckCell(order, cell);
-                _pendingCells.RemoveAt(0);
+                Map.Cell cell = _map.Cells[i][j];
+                if (!_ids.ToList().Contains(cell.character))
+                    continue;
+                if (_checkedCells.Contains(cell))
+                    continue;
+
+                _pendingCells.Add(new SpawnDepth(cell, 0));
+
+                while (_pendingCells.Count > 0)
+                {
+                    SpawnDepth spawnDepth = _pendingCells.ElementAt(0);
+                    CheckCell(order, spawnDepth);
+                    _pendingCells.RemoveAt(0);
+                }
             }
         }
 
         return order;
     }
 
-    private void CheckCell(List<Vector3> order, Cell cell)
+    private void CheckCell(List<Vector3> order, SpawnDepth spawnDepth)
     {
-        if (!IsValidPosition(cell.position))
-            return;
-        if (_checkedCells.Contains(cell.position))
+        if (_checkedCells.Contains(spawnDepth.cell))
             return;
 
-        Vector3 pos = cell.position;
         for (var index = 0; index < _ids.Length; index++)
         {
             var id = _ids[index];
-            int mapIndex = (int)pos.y * _width + (int)pos.x % _width;
-            if (_map[mapIndex] != id) continue;
+            if (spawnDepth.cell.character != id) continue;
 
-            _checkedCells.Add(pos);
-            _pendingCells.Add(new Cell(pos + Vector3.left, cell.level + 1));
-            _pendingCells.Add(new Cell(pos + Vector3.up, cell.level + 1));
-            _pendingCells.Add(new Cell(pos + Vector3.right, cell.level + 1));
-            _pendingCells.Add(new Cell(pos + Vector3.down, cell.level + 1));
-            pos.z -= 15f + _zOffset * cell.level;
+            _checkedCells.Add(spawnDepth.cell);
+            List<char> ids = _ids.ToList();
+            for (int i = 0; i < 4; i++)
+            {
+                Direction direction = (Direction)i;
+                if (spawnDepth.cell.TryGetNeighbour(direction, out Map.Cell neighbourCell) && ids.Contains(neighbourCell.character))
+                {
+                    _pendingCells.Add(new SpawnDepth(neighbourCell, spawnDepth.level + 1));
+                }
+            }
+
+            Vector3 pos = new Vector3(spawnDepth.cell.coordinates.Y, spawnDepth.cell.coordinates.X, -15);
+            pos.z -= _zOffset * spawnDepth.level;
             order.Add(pos + (Vector3)Offset);
         }
     }
 
     private bool IsValidPosition(Vector2 position)
     {
-        return position.x >= 0 && position.x < _width - 1  && position.y >= 0 && position.y < _height;
+        return position.x >= 0 && position.x < _width - 1 && position.y >= 0 && position.y < _height;
     }
 
     #endregion
