@@ -102,7 +102,7 @@ public class ContiguousSpawnMode : SpawnMode
 
             Vector3 pos = new Vector3(spawnDepth.cell.coordinates.Y, spawnDepth.cell.coordinates.X, -15);
             pos.z -= _zOffset * spawnDepth.level;
-            order.Add(pos + (Vector3)Offset);
+            order.Add(pos);
         }
     }
 

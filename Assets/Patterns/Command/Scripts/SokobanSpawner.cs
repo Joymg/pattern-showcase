@@ -21,6 +21,7 @@ namespace Joymg.Patterns.Command
 
         #region Consts
         private const float Placing_Time = 1.5f;
+        private Vector3 Tile_Map_Center_Offset = new Vector3(0.5f, 0.5f, 0f);
         #endregion
 
         #region Fields
@@ -65,11 +66,12 @@ namespace Joymg.Patterns.Command
 
             for (int i = 0; i < spawnPoints.Count; i++)
             {
-                Entity entity = UnityEngine.Object.Instantiate(prefab, spawnPoints[i], Quaternion.identity);
+                Entity entity = UnityEngine.Object.Instantiate(prefab, spawnPoints[i] + Tile_Map_Center_Offset, Quaternion.identity);
+                entity.Init(new Coordinates(spawnPoints[i]));
                 entities.Add(entity);
             }
         }
-    #endregion
+        #endregion
 
     }
 }

@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Joymg.Patterns.Command
 {
 
-    public abstract class Entity : MonoBehaviour
+    public class Entity : MonoBehaviour
     {
         #region Enums
         #endregion
@@ -17,6 +17,8 @@ namespace Joymg.Patterns.Command
 
         #region Fields
         private SpriteRenderer spriteRenderer;
+        [SerializeField] protected Coordinates _coordinates;
+        public Coordinates Coordinates => _coordinates;
 
         public SpriteRenderer SpriteRenderer  => spriteRenderer; 
         #endregion
@@ -25,6 +27,11 @@ namespace Joymg.Patterns.Command
         #endregion
 
         #region Methods
+
+        public void Init(Coordinates coordinates)
+        {
+            _coordinates = coordinates;
+        }
         public IEnumerator SetIntoPosition(float eta, EasingType easing = EasingType.Linear)
         {
             float t = 0;

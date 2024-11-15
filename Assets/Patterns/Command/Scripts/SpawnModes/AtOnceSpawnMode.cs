@@ -44,7 +44,7 @@ namespace Joymg.Patterns.Command
                         if (cell.character == id)
                         {
                             position = new Vector3(cell.coordinates.Y, cell.coordinates.X, -15);
-                            order.Add(position + (Vector3)Offset);
+                            order.Add(position);
                         }
                     }
                 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 // Author : 
@@ -30,6 +31,12 @@ namespace Joymg.Patterns.Command
 
         public void Execute()
         {
+            _player.MoveTowards(_direction.Collapse());
+        }
+        public void Execute(Map map, List<Entity> entities, Direction direction)
+        {
+            CorrdinateDirectionComparer corrdinateDirectionComparer = new CorrdinateDirectionComparer(direction);
+            entities.Sort((a, b) => corrdinateDirectionComparer.Compare(a.Coordinates, b.Coordinates));
             _player.MoveTowards(_direction.Collapse());
         }
 
