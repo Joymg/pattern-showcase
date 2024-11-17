@@ -40,9 +40,8 @@ namespace Joymg.Patterns.Command
         public Tilemap staticTilemap;
         public Tilemap movablesTilemap;
 
-        [FormerlySerializedAs("entityPrefab")] [Header("Entities")] [SerializeField]
-        private Entity playerPrefab;
-
+        [Header("Entities")] 
+        [SerializeField] private Entity playerPrefab;
         [SerializeField] private Entity boxPrefab;
         [SerializeField] private Entity wallPrefab;
         [Header("Hashmap")] public SokobanHashmap tileHashmap;
@@ -131,6 +130,7 @@ namespace Joymg.Patterns.Command
         {
             Player player = Instantiate((Player)playerPrefab, backgroundTilemap.transform.parent);
             Vector3 offset = Vector2.one * 0.5f;
+            player.Init( new Coordinates(_playerStartingPosition.x, _playerStartingPosition.y));
             player.transform.SetPositionAndRotation(_playerStartingPosition + transform.position + offset,
                 Quaternion.identity);
             return player;
@@ -140,12 +140,14 @@ namespace Joymg.Patterns.Command
         {
             _wallSpawner.InstantiateElements(wallPrefab,
                 tileHashmap.Entries.FirstOrDefault(entry => entry.TileType == TileType.Wall));
+           
         }
 
-        public void InstantiateBoxes()
+        public List<Entity> InstantiateBoxes()
         {
             _boxSpawner.InstantiateElements(boxPrefab,
                 tileHashmap.Entries.FirstOrDefault(entry => entry.TileType == TileType.Box));
+            return _boxSpawner.entities;
         }
 
         public IEnumerator PlaceElements()
@@ -174,5 +176,7 @@ namespace Joymg.Patterns.Command
         }
 
         #endregion
+
+
     }
 }

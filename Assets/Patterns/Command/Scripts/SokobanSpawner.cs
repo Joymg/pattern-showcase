@@ -67,7 +67,7 @@ namespace Joymg.Patterns.Command
             for (int i = 0; i < spawnPoints.Count; i++)
             {
                 Entity entity = UnityEngine.Object.Instantiate(prefab, spawnPoints[i] + Tile_Map_Center_Offset, Quaternion.identity);
-                entity.Init(new Coordinates(spawnPoints[i]));
+                entity.Init(new Coordinates((int)spawnPoints[i].x, (int)spawnPoints[i].y));
                 entities.Add(entity);
             }
         }

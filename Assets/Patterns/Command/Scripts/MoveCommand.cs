@@ -8,48 +8,78 @@ namespace Joymg.Patterns.Command
     public class MoveCommand : ICommand
     {
         #region Enums
+
         #endregion
 
         #region Consts
+
         #endregion
 
         #region Fields
+
         private readonly Direction _direction;
         private Player _player;
-        #endregion
+        private List<Entity> affectedEntities;
 
-        #region Unity Methods
         #endregion
 
         #region Methods
 
-        public MoveCommand(Player player, Direction direction)
+        public MoveCommand(Direction direction)
         {
             _direction = direction;
-            _player = player;
         }
 
         public void Execute()
         {
             _player.MoveTowards(_direction.Collapse());
         }
-        public void Execute(Map map, List<Entity> entities, Direction direction)
+
+        public void Execute(Map map, List<Entity> entities)
         {
-            CorrdinateDirectionComparer corrdinateDirectionComparer = new CorrdinateDirectionComparer(direction);
-            entities.Sort((a, b) => corrdinateDirectionComparer.Compare(a.Coordinates, b.Coordinates));
-            _player.MoveTowards(_direction.Collapse());
+            SortControlledEntities(entities, _direction);
+
+            foreach (Entity entity in entities)
+            {
+                affectedEntities = map.CalculateMovingEntitiesInDirection(entity.Coordinates.Reverse(), _direction);
+            }
+
+            if (affectedEntities.Count <= 0)
+                return;
+
+            ExecuteMovements(map, _direction);
         }
 
-        public void Redo()
+
+        private void SortControlledEntities(List<Entity> entities, Direction direction)
         {
-            Execute();
+            CoordinateDirectionComparer comparer = new CoordinateDirectionComparer(direction);
+            entities.Sort((a, b) => comparer.Compare(a.Coordinates, b.Coordinates));
         }
 
-        public void Undo()
+        private void ExecuteMovements(Map map, Direction direction)
         {
-            _player.MoveTowards(_direction.Opposite().Collapse());
+            foreach (Entity entity in affectedEntities)
+            {
+                Map.Cell currentCell = map.GetCell(entity.Coordinates.Reverse());
+                Map.Cell neighborCell = currentCell.GetNeighbour(direction);
+                map.Swap(currentCell, neighborCell);
+                entity.MoveTowards(direction.Collapse());
+            }
         }
+
+        public void Redo(Map map)
+        {
+            SortControlledEntities(affectedEntities, _direction);
+            ExecuteMovements(map, _direction);
+        }
+
+        public void Undo(Map map)
+        {
+            SortControlledEntities(affectedEntities, _direction.Opposite());
+            ExecuteMovements(map, _direction.Opposite());
+        }
+
         #endregion
-
     }
 }

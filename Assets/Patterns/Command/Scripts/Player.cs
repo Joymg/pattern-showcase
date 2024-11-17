@@ -20,27 +20,7 @@ namespace Joymg.Patterns.Command
         #endregion
 
         #region Methods
-        public void MoveTowards(Vector3 direction)
-        {
-            transform.Translate(direction * STEP_DISTANCE);
-        }
 
-        public void MoveUpwards()
-        {
-            MoveTowards(Vector3.up);
-        }
-        public void MoveRight()
-        {
-            MoveTowards(Vector3.right);
-        }
-        public void MoveDownwards()
-        {
-            MoveTowards(Vector3.down);
-        }
-        public void MoveLeftwards()
-        {
-            MoveTowards(Vector3.left);
-        }
         #endregion
     }
 }

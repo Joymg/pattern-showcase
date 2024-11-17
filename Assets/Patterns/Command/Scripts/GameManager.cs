@@ -19,7 +19,7 @@ namespace Joymg.Patterns.Command
         public int level;
         
         [SerializeField] private MapLoader _mapLoader;
-        [SerializeField] private Player _player;
+        [SerializeField] private List<Entity> _controlledEntities = new List<Entity>();
         [SerializeField] private Map _map;
 
         //Movement keys
@@ -39,20 +39,28 @@ namespace Joymg.Patterns.Command
         #region Unity Methods
         private IEnumerator Start()
         {
+            yield return CreateMap();
+            upCommand = new MoveCommand(Direction.Up);
+            rightCommand = new MoveCommand(Direction.Right);
+            downCommand = new MoveCommand(Direction.Down);
+            leftCommand = new MoveCommand(Direction.Left);
+            yield return null;
+        }
 
-
+        private IEnumerator CreateMap()
+        {
             _mapLoader.Init();
             _map = _mapLoader.LoadLevel(level);
 
             _mapLoader.InstantiateWalls();
-            _mapLoader.InstantiateBoxes();
+            _map.entities.AddRange(_mapLoader.InstantiateBoxes());
+            
             yield return StartCoroutine( _mapLoader.PlaceElements());
 
-            _player = _mapLoader.InstantiatePlayer();
-            upCommand = new MoveCommand(_player, Direction.Up);
-            rightCommand = new MoveCommand(_player, Direction.Right);
-            downCommand = new MoveCommand(_player, Direction.Down);
-            leftCommand = new MoveCommand(_player, Direction.Left);
+            Entity player = _mapLoader.InstantiatePlayer();
+            
+            _map.entities.Add(player);
+            _controlledEntities.Add(player);
             yield return null;
         }
 
@@ -100,7 +108,7 @@ namespace Joymg.Patterns.Command
         private void ExecuteCommand(ICommand command)
         {
             //Execure command
-            command.Execute();
+            command.Execute(_map, _controlledEntities);
 
             //Add to Undo Stack
             undoCommands.Push(command);
@@ -116,7 +124,7 @@ namespace Joymg.Patterns.Command
 
             ICommand lastCommand = undoCommands.Pop();
 
-            lastCommand.Undo();
+            lastCommand.Undo(_map);
 
             //after undo a command it is stored in case of redo
             redoCommands.Push(lastCommand);
@@ -129,7 +137,7 @@ namespace Joymg.Patterns.Command
 
             ICommand undoneCommand = redoCommands.Pop();
 
-            undoneCommand.Redo();
+            undoneCommand.Redo(_map);
 
             //redone commands are inserted back into de undo stack
             undoCommands.Push(undoneCommand);
@@ -137,7 +145,12 @@ namespace Joymg.Patterns.Command
 
         private IEnumerator Replay()
         {
-            _player.transform.position = Vector3.zero;
+            foreach (Entity entity in _map.entities)
+            {
+                Destroy(entity.gameObject);
+            }
+            
+            yield return CreateMap();
 
             yield return new WaitForSeconds(REPLAY_PAUSE_TIMER);
 
@@ -147,7 +160,7 @@ namespace Joymg.Patterns.Command
             {
                 ICommand currentCommand = replay[i];
 
-                currentCommand.Execute();
+                currentCommand.Execute(_map, _controlledEntities);
 
                 yield return new WaitForSeconds(REPLAY_PAUSE_TIMER);
             }

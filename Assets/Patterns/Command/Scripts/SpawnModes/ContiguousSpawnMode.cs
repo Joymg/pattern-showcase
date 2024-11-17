@@ -105,11 +105,5 @@ public class ContiguousSpawnMode : SpawnMode
             order.Add(pos);
         }
     }
-
-    private bool IsValidPosition(Vector2 position)
-    {
-        return position.x >= 0 && position.x < _width - 1 && position.y >= 0 && position.y < _height;
-    }
-
     #endregion
 }

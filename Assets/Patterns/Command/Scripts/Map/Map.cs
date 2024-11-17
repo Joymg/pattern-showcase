@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using UnityEngine.Serialization;
+using UnityEngine.TextCore.Text;
 
 namespace Joymg.Patterns.Command
 {
@@ -10,12 +12,14 @@ namespace Joymg.Patterns.Command
     {
         private Cell[][] cells;
         public Cell[][] Cells => cells;
+        public List<Entity> entities;
         private readonly string _startingMap;
-        public Map(string startingMap) 
+
+        public Map(string startingMap)
         {
             _startingMap = startingMap;
-        
-        
+            entities = new List<Entity>();
+
             string[] parts = startingMap.Split('\n');
             cells = new Cell[parts.Length][];
             for (int i = 0; i < parts.Length; i++)
@@ -56,6 +60,58 @@ namespace Joymg.Patterns.Command
             return true;
         }
 
+        public void Swap(Cell a, Cell b)
+        {
+            (a.character, b.character) = (b.character, a.character);
+        }
+
+        public List<Entity> CalculateMovingEntitiesInDirection(Coordinates entityCoordinates,
+            Direction direction)
+        {
+            List<Entity> movements = new List<Entity>();
+            Cell currentCell = GetCell(entityCoordinates);
+
+            TryMoveCell(movements, currentCell, direction, 0);
+
+            return movements;
+        }
+
+        private bool TryMoveCell(List<Entity> movements, Cell currentCell, Direction direction,
+            int i)
+        {
+            if (!currentCell.TryGetNeighbour(direction, out Cell neighborCell))
+                return false;
+            if (i > 1) return false;
+
+            switch (neighborCell.CellType())
+            {
+                case Cell.CellType.Floor:
+                case Cell.CellType.Goal:
+                    movements.Add(GetEntityAtCoordinates(currentCell.coordinates.Reverse()));
+                    //Swap(currentCell, neighborCell);
+                    return true;
+                case Cell.CellType.Box:
+                case Cell.CellType.BoxOnGoal:
+                    if (!TryMoveCell(movements, neighborCell, direction, i + 1)) return false;
+
+                    movements.Add(GetEntityAtCoordinates(currentCell.coordinates.Reverse()));
+                    //Swap(currentCell, neighborCell);
+                    return true;
+                case Cell.CellType.Wall:
+                case Cell.CellType.Player:
+                case Cell.CellType.PlayerOnGoal:
+                    return false;
+                default:
+                    return true;
+            }
+        }
+
+        private Entity GetEntityAtCoordinates(Coordinates entityCoordinates)
+        {
+            return entities.First(entity => entity.Coordinates.Equals(entityCoordinates));
+        }
+
+
         [System.Serializable]
         public class Cell
         {
@@ -88,10 +144,6 @@ namespace Joymg.Patterns.Command
 
             public static implicit operator bool(Cell cell) => cell != null;
         }
-
-
-
-
     }
 
     public static class MapExtensions

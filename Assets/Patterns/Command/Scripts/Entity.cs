@@ -13,6 +13,8 @@ namespace Joymg.Patterns.Command
         #endregion
 
         #region Consts
+        private const float STEP_DISTANCE = 1.0f;
+        private const float STEP_SPEED = 1.0f;
         #endregion
 
         #region Fields
@@ -46,6 +48,30 @@ namespace Joymg.Patterns.Command
                 yield return null;
             }
             transform.position = end;
+        }
+        
+        public void MoveTowards(Vector3 direction)
+        {
+            transform.Translate(direction * STEP_DISTANCE);
+            _coordinates.X += (int)direction.x;
+            _coordinates.Y += (int)direction.y;
+        }
+
+        public void MoveUpwards()
+        {
+            MoveTowards(Vector3.up);
+        }
+        public void MoveRight()
+        {
+            MoveTowards(Vector3.right);
+        }
+        public void MoveDownwards()
+        {
+            MoveTowards(Vector3.down);
+        }
+        public void MoveLeftwards()
+        {
+            MoveTowards(Vector3.left);
         }
         #endregion
     }
