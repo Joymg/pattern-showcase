@@ -51,7 +51,7 @@ public class ContiguousSpawnMode : SpawnMode
 
     public override List<Vector3> GenerateOrder()
     {
-        List<Vector3> order = new List<Vector3>();
+        order = new List<Vector3>();
 
         int width = _map.Cells.Length;
         for (int i = 0; i < width; i++)
@@ -100,9 +100,8 @@ public class ContiguousSpawnMode : SpawnMode
                 }
             }
 
-            Vector3 pos = new Vector3(spawnDepth.cell.coordinates.Y, spawnDepth.cell.coordinates.X, -15);
-            pos.z -= _zOffset * spawnDepth.level;
-            order.Add(pos);
+            AddToOrder(spawnDepth.cell.coordinates, -15 - _zOffset * spawnDepth.level);
+
         }
     }
     #endregion

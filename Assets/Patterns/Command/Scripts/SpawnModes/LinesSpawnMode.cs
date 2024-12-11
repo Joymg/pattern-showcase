@@ -11,9 +11,8 @@ namespace Joymg.Patterns.Command
 
         public override List<Vector3> GenerateOrder()
         {
-            List<Vector3> order = new List<Vector3>();
+            order = new List<Vector3>();
             float zOffset = 0f;
-            Vector3 position;
 
             int width = _map.Cells.Length;
             for (int i = 0; i < width; i++)
@@ -26,8 +25,9 @@ namespace Joymg.Patterns.Command
                         Map.Cell cell = _map.Cells[i][j];
                         if (cell.character != id) continue;
 
-                        position = new Vector3(cell.coordinates.Y, cell.coordinates.X, -15 + zOffset);
-                        order.Add(position);
+
+
+                        AddToOrder(cell.coordinates, -15 + zOffset);
                         zOffset -= 1;
                     }
                 }

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static Joymg.Patterns.Command.Map;
+using UnityEngine.UIElements;
 
 // Author : Joy
 
@@ -19,6 +21,7 @@ namespace Joymg.Patterns.Command
         #region Fields
         protected Map _map;
         protected char[] _ids;
+        protected List<Vector3> order;
 
         protected SpawnMode(Map map, char[] ids)
         {
@@ -32,6 +35,12 @@ namespace Joymg.Patterns.Command
         #endregion
 
         #region Methods
+
+        public virtual void AddToOrder(Coordinates coordinates, float zValue)
+        {
+            Vector3 position = new Vector3(coordinates.Y,  coordinates.X, zValue);
+            order.Add(position);
+        }
         public abstract List<Vector3> GenerateOrder();
         #endregion
 

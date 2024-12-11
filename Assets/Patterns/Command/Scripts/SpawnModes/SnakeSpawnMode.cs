@@ -39,8 +39,7 @@ namespace Joymg.Patterns.Command
         {
             int jumps = 0;
             float zValue = 0f;
-            Vector3 position;
-            List<Vector3> order = new List<Vector3>();
+            order = new List<Vector3>();
             
             int width = _map.Cells.Length;
             for (int i = 0; i < width; i++)
@@ -56,8 +55,7 @@ namespace Joymg.Patterns.Command
                     {
                         if (cell.character != id) continue;
 
-                        position = new Vector3(cell.coordinates.Y, cell.coordinates.X, -15 + zValue);
-                        order.Add(position);
+                        AddToOrder(cell.coordinates, -15 + zValue);
                         zValue -= Z_OFFSET;
                     }
                 }
