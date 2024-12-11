@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using UnityEngine.Serialization;
 using UnityEngine.TextCore.Text;
 
@@ -11,14 +13,17 @@ namespace Joymg.Patterns.Command
     public class Map
     {
         private Cell[][] cells;
-        public Cell[][] Cells => cells;
-        public List<Entity> entities;
         private readonly string _startingMap;
+        public Cell[][] Cells => cells;
+        public List<Cell> goals;
+        public List<Entity> entities;
+        public int Height => cells.Length;
 
         public Map(string startingMap)
         {
             _startingMap = startingMap;
             entities = new List<Entity>();
+            goals = new List<Cell>();
 
             string[] parts = startingMap.Split('\n');
             cells = new Cell[parts.Length][];
@@ -35,6 +40,10 @@ namespace Joymg.Patterns.Command
         private void CreateCell(int x, int y, char character)
         {
             Cell cell = cells[x][y] = new Cell(new Coordinates(x, y), character, this);
+            if (character is '.' or '+' or '*')
+            {
+                goals.Add(cell);
+            }
         }
 
         public Cell GetCell(Coordinates coordinates)
@@ -62,18 +71,48 @@ namespace Joymg.Patterns.Command
 
         public void Swap(Cell a, Cell b)
         {
-            (a.character, b.character) = (b.character, a.character);
+            Cell.CellType aCelltype = a.CellType();
+            Cell.CellType bCelltype = b.CellType();
+
+            if (aCelltype == Cell.CellType.Player && bCelltype == Cell.CellType.Goal)
+            {
+                a.character = MapExtensions.Lookup.First(entry => entry.Value == Cell.CellType.Floor).Key;
+                b.character = MapExtensions.Lookup.First(entry => entry.Value == Cell.CellType.PlayerOnGoal).Key;
+            }
+            else if (aCelltype == Cell.CellType.PlayerOnGoal && bCelltype == Cell.CellType.Floor)
+            {
+                a.character = MapExtensions.Lookup.First(entry => entry.Value == Cell.CellType.Goal).Key;
+                b.character = MapExtensions.Lookup.First(entry => entry.Value == Cell.CellType.Player).Key;
+            }
+            else if (aCelltype == Cell.CellType.Box && bCelltype == Cell.CellType.Goal)
+            {
+                a.character = MapExtensions.Lookup.First(entry => entry.Value == Cell.CellType.Floor).Key;
+                b.character = MapExtensions.Lookup.First(entry => entry.Value == Cell.CellType.BoxOnGoal).Key;
+            }
+            else if (aCelltype == Cell.CellType.BoxOnGoal && bCelltype == Cell.CellType.Floor)
+            {
+                a.character = MapExtensions.Lookup.First(entry => entry.Value == Cell.CellType.Goal).Key;
+                b.character = MapExtensions.Lookup.First(entry => entry.Value == Cell.CellType.Box).Key;
+            }
+            else
+            {
+                (a.character, b.character) = (b.character, a.character);
+            }
+
         }
 
-        public List<Entity> CalculateMovingEntitiesInDirection(Coordinates entityCoordinates,
-            Direction direction)
+        public bool TryMovingEntitiesInDirection(List<Entity> _controlledEntities, Direction direction, out List<Entity> movingEntities)
         {
-            List<Entity> movements = new List<Entity>();
-            Cell currentCell = GetCell(entityCoordinates);
+            movingEntities = new List<Entity>();
+            foreach (Entity entity in _controlledEntities)
+            {
+                Cell currentCell = GetCell(entity.Coordinates.Reverse());
 
-            TryMoveCell(movements, currentCell, direction, 0);
+                if (!TryMoveCell(movingEntities, currentCell, direction, 0))
+                    return false;
+            }
+            return true;
 
-            return movements;
         }
 
         private bool TryMoveCell(List<Entity> movements, Cell currentCell, Direction direction,
@@ -111,6 +150,31 @@ namespace Joymg.Patterns.Command
             return entities.First(entity => entity.Coordinates.Equals(entityCoordinates));
         }
 
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < cells.Length; i++)
+            {
+                for (int j = 0; j < cells[i].Length; j++)
+                {
+                    sb.Append(cells[i][j].character);
+                }
+                sb.Append('\n');
+            }
+
+            return sb.ToString();
+        }
+
+        internal bool CheckWin()
+        {
+            foreach (Cell goal in goals)
+            {
+                if (GetCell(goal.coordinates).CellType() != Cell.CellType.BoxOnGoal)
+                return false;
+
+            }
+            return true;
+        }
 
         [System.Serializable]
         public class Cell
@@ -128,19 +192,19 @@ namespace Joymg.Patterns.Command
 
             public Coordinates coordinates;
             public char character;
-            [FormerlySerializedAs("grid")] public Map map;
+            private Map _map;
 
             public Cell(Coordinates coordinates, char character, Map map)
             {
                 this.character = character;
-                this.map = map;
+                this._map = map;
                 this.coordinates = coordinates;
             }
 
-            public Cell GetNeighbour(Direction direction) => map.GetCell(coordinates.Step(direction));
+            public Cell GetNeighbour(Direction direction) => _map.GetCell(coordinates.Step(direction));
 
             public bool TryGetNeighbour(Direction direction, out Cell cell) =>
-                map.TryGetCell(coordinates.Step(direction), out cell);
+                _map.TryGetCell(coordinates.Step(direction), out cell);
 
             public static implicit operator bool(Cell cell) => cell != null;
         }
@@ -148,7 +212,7 @@ namespace Joymg.Patterns.Command
 
     public static class MapExtensions
     {
-        private static Dictionary<char, Map.Cell.CellType> _lookup = new Dictionary<char, Map.Cell.CellType>()
+        public static Dictionary<char, Map.Cell.CellType> Lookup = new Dictionary<char, Map.Cell.CellType>()
         {
             { ' ', Map.Cell.CellType.Floor },
             { '#', Map.Cell.CellType.Wall },
@@ -161,7 +225,7 @@ namespace Joymg.Patterns.Command
 
         public static Map.Cell.CellType CellType(this Map.Cell cell)
         {
-            return _lookup[cell.character];
+            return Lookup[cell.character];
         }
     }
 }

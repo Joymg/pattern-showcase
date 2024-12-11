@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 // Author : 
@@ -17,44 +18,37 @@ namespace Joymg.Patterns.Command
 
         #region Fields
 
-        private readonly Direction _direction;
-        private Player _player;
+        public readonly Direction Direction;
         private List<Entity> affectedEntities;
-
+        public List<Entity> AffectedEntities => affectedEntities;
         #endregion
 
         #region Methods
 
         public MoveCommand(Direction direction)
         {
-            _direction = direction;
+            Direction = direction;
         }
 
-        public void Execute()
+        public MoveCommand(MoveCommand moveCommand)
         {
-            _player.MoveTowards(_direction.Collapse());
+            Direction = moveCommand.Direction;
+            affectedEntities = moveCommand.AffectedEntities;
         }
 
+ 
         public void Execute(Map map, List<Entity> entities)
         {
-            SortControlledEntities(entities, _direction);
-
-            foreach (Entity entity in entities)
-            {
-                affectedEntities = map.CalculateMovingEntitiesInDirection(entity.Coordinates.Reverse(), _direction);
-            }
-
-            if (affectedEntities.Count <= 0)
-                return;
-
-            ExecuteMovements(map, _direction);
+            affectedEntities = new List<Entity>(entities) ;
+            SortControlledEntities(Direction);
+            ExecuteMovements(map, Direction);
         }
 
 
-        private void SortControlledEntities(List<Entity> entities, Direction direction)
+        private void SortControlledEntities(Direction direction)
         {
             CoordinateDirectionComparer comparer = new CoordinateDirectionComparer(direction);
-            entities.Sort((a, b) => comparer.Compare(a.Coordinates, b.Coordinates));
+            affectedEntities.Sort((a, b) => comparer.Compare(a.Coordinates, b.Coordinates));
         }
 
         private void ExecuteMovements(Map map, Direction direction)
@@ -62,22 +56,36 @@ namespace Joymg.Patterns.Command
             foreach (Entity entity in affectedEntities)
             {
                 Map.Cell currentCell = map.GetCell(entity.Coordinates.Reverse());
+                Coordinates pre = currentCell.coordinates;
                 Map.Cell neighborCell = currentCell.GetNeighbour(direction);
                 map.Swap(currentCell, neighborCell);
                 entity.MoveTowards(direction.Collapse());
+                //Debug.Log(map.ToString());
+                //Debug.Log($"{entity.name}:{pre}->{entity.Coordinates}");
             }
         }
 
         public void Redo(Map map)
         {
-            SortControlledEntities(affectedEntities, _direction);
-            ExecuteMovements(map, _direction);
+            SortControlledEntities(Direction);
+            ExecuteMovements(map, Direction);
         }
 
         public void Undo(Map map)
         {
-            SortControlledEntities(affectedEntities, _direction.Opposite());
-            ExecuteMovements(map, _direction.Opposite());
+            SortControlledEntities(Direction.Opposite());
+            ExecuteMovements(map, Direction.Opposite());
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < affectedEntities.Count; i++)
+                sb.Append($"{affectedEntities[i].name},");
+
+            sb.Remove(sb.Length-1,1);
+            
+            return $"Type: {this.GetType().Name}, Elements: {sb}";
         }
 
         #endregion
