@@ -34,10 +34,10 @@ namespace Joymg.Patterns.Command
 
         public Coordinates Step(Direction direction) => direction switch
         {
-            Direction.Right => new Coordinates(_x , _y+ 1),
-            Direction.Down => new Coordinates(_x- 1, _y ),
-            Direction.Left => new Coordinates(_x , _y- 1),
-            _ => new Coordinates(_x + 1, _y )
+            Direction.Right => new Coordinates(_x, _y + 1),
+            Direction.Down => new Coordinates(_x - 1, _y),
+            Direction.Left => new Coordinates(_x, _y - 1),
+            _ => new Coordinates(_x + 1, _y)
         };
 
         public override bool Equals(object obj)
@@ -47,6 +47,11 @@ namespace Joymg.Patterns.Command
 
             return coordinates.X == _x && coordinates.Y == _y;
         }
+
+        public override string ToString()
+        {
+            return $"{{{X}, {Y}}}";
+        }
     }
 
     public static class CoordinatesExtensions
@@ -54,6 +59,17 @@ namespace Joymg.Patterns.Command
         public static Coordinates Reverse(this Coordinates coordinates)
         {
             return new Coordinates(coordinates.Y, coordinates.X);
+        }
+
+        public static Coordinates ToMap(this Coordinates coordinates, Map map)
+        {
+            Coordinates reversed = coordinates.Reverse();
+            return new Coordinates(map.Height - reversed.X, reversed.Y);
+        }
+
+        public static Coordinates FromMap(this Coordinates coordinates, Map map)
+        {
+            return new Coordinates(map.Height - coordinates.X, coordinates.Y);
         }
     }
 
@@ -72,13 +88,13 @@ namespace Joymg.Patterns.Command
             switch (_direction)
             {
                 case Direction.Right:
-                    return a.X > b.X ? 1 : -1;
+                    return b.X.CompareTo(a.X); // Mayor X va primero
                 case Direction.Down:
-                    return a.Y > b.Y ? 1 : -1;
+                    return a.Y.CompareTo(b.Y); // Menor Y va primero
                 case Direction.Left:
-                    return a.X < b.X ? 1 : -1;
+                    return a.X.CompareTo(b.X); // Menor X va primero
                 default:
-                    return a.Y < b.Y ? 1 : -1;
+                    return b.Y.CompareTo(a.Y); // Mayor Y va primero 
             }
         }
     }

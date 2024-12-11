@@ -1,6 +1,9 @@
+using Codice.Client.BaseCommands;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 
 namespace Joymg.Patterns.Command
@@ -16,29 +19,43 @@ namespace Joymg.Patterns.Command
 
         #region Fields
 
+        public static GameManager Instance;
+
         public int level;
-        
+
         [SerializeField] private MapLoader _mapLoader;
         [SerializeField] private List<Entity> _controlledEntities = new List<Entity>();
         [SerializeField] private Map _map;
 
         //Movement keys
+        private CommandInputHandler _inputHandler;
         private ICommand upCommand;
+        public Action<Direction> upExecute;
         private ICommand rightCommand;
+        public Action<Direction> rightExecute;
         private ICommand downCommand;
+        public Action<Direction> downExecute;
         private ICommand leftCommand;
+        public Action<Direction> leftExecute;
 
         //Storing commans for easier undo and redo
-        private Stack<ICommand> undoCommands = new();
-        private Stack<ICommand> redoCommands = new();
+        [SerializeField] private Stack<ICommand> undoCommands = new();
+        [SerializeField] private Stack<ICommand> redoCommands = new();
 
         //On replay control is taken from player
         private bool isReplaying = false;
         #endregion
 
         #region Unity Methods
+
+        private void Awake()
+        {
+            if (Instance != this)
+                Instance = this;
+        }
         private IEnumerator Start()
         {
+            _inputHandler = new CommandInputHandler();
             yield return CreateMap();
             upCommand = new MoveCommand(Direction.Up);
             rightCommand = new MoveCommand(Direction.Right);
@@ -54,11 +71,11 @@ namespace Joymg.Patterns.Command
 
             _mapLoader.InstantiateWalls();
             _map.entities.AddRange(_mapLoader.InstantiateBoxes());
-            
-            yield return StartCoroutine( _mapLoader.PlaceElements());
+
+            yield return StartCoroutine(_mapLoader.PlaceElements());
 
             Entity player = _mapLoader.InstantiatePlayer();
-            
+
             _map.entities.Add(player);
             _controlledEntities.Add(player);
             yield return null;
@@ -69,23 +86,34 @@ namespace Joymg.Patterns.Command
             if (isReplaying)
                 return;
 
-            if (Input.GetKeyDown(KeyCode.W))
+            ICommand inputCommand = _inputHandler.GetInput();
+
+            /*if (inputCommand != null)
+                if (CheckValidMovement((inputCommand as MoveCommand).Direction, out List<Entity> movingEntities))
+                {
+                    ExecuteCommand(inputCommand, movingEntities);
+                }*/
+            if (Input.GetKeyDown(KeyCode.W) && CheckValidMovement(Direction.Up, out List<Entity> movingEntities))
             {
-                ExecuteCommand(upCommand);
+                upExecute?.Invoke(Direction.Up);
+                ExecuteCommand(upCommand, movingEntities);
             }
-            else if (Input.GetKeyDown(KeyCode.D))
+            else if (Input.GetKeyDown(KeyCode.D) && CheckValidMovement(Direction.Right, out movingEntities))
             {
-                ExecuteCommand(rightCommand);
+                rightExecute?.Invoke(Direction.Right);
+                ExecuteCommand(rightCommand, movingEntities);
             }
-            else if (Input.GetKeyDown(KeyCode.S))
+            else if (Input.GetKeyDown(KeyCode.S) && CheckValidMovement(Direction.Down, out movingEntities))
             {
-                ExecuteCommand(downCommand);
+                downExecute?.Invoke(Direction.Down);
+                ExecuteCommand(downCommand, movingEntities);
             }
-            else if (Input.GetKeyDown(KeyCode.A))
+            else if (Input.GetKeyDown(KeyCode.A) && CheckValidMovement(Direction.Left, out movingEntities))
             {
-                ExecuteCommand(leftCommand);
+                leftExecute?.Invoke(Direction.Left);
+                ExecuteCommand(leftCommand, movingEntities);
             }
-            else if (Input.GetKeyDown(KeyCode.U))
+            if (Input.GetKeyDown(KeyCode.U))
             {
                 Undo();
             }
@@ -93,8 +121,9 @@ namespace Joymg.Patterns.Command
             else if (Input.GetKeyDown(KeyCode.R))
             {
                 Redo();
-
             }
+
+            if (_map.CheckWin()) { Debug.Log("YOU WON!!"); }
 
             //Start replay
             if (Input.GetKeyDown(KeyCode.Return))
@@ -105,13 +134,47 @@ namespace Joymg.Patterns.Command
             }
         }
 
-        private void ExecuteCommand(ICommand command)
+        private bool CheckValidMovement(Direction direction, out List<Entity> movingEntities)
         {
+
+            SortControlledEntities(_controlledEntities, direction);
+
+            if (!_map.TryMovingEntitiesInDirection(_controlledEntities, direction, out movingEntities))
+                return false;
+
+            if (movingEntities.Count <= 0)
+                return false;
+
+            return true;
+        }
+
+        private void SortControlledEntities(List<Entity> entities, Direction direction)
+        {
+            CoordinateDirectionComparer comparer = new CoordinateDirectionComparer(direction);
+            entities.Sort((a, b) => comparer.Compare(a.Coordinates, b.Coordinates));
+        }
+
+        private void ExecuteCommand(ICommand command, List<Entity> movingEntities)
+        {
+            string pre = _map.ToString();
             //Execure command
-            command.Execute(_map, _controlledEntities);
+            command.Execute(_map, movingEntities);
+            string post = _map.ToString();
+
+            Debug.Log($"{pre}\n\n{post}");
 
             //Add to Undo Stack
+            if (command is MoveCommand moveCommand)
+            {
+                command = new MoveCommand(moveCommand);
+            }
             undoCommands.Push(command);
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int i = undoCommands.Count - 1; i >= 0; i--)
+            {
+                stringBuilder.AppendLine($"Movement {i}: {undoCommands.ElementAt(i) as MoveCommand}");
+            }
+            Debug.Log(stringBuilder);
 
             //After modifiying redo is not possible
             redoCommands.Clear();
@@ -149,7 +212,7 @@ namespace Joymg.Patterns.Command
             {
                 Destroy(entity.gameObject);
             }
-            
+
             yield return CreateMap();
 
             yield return new WaitForSeconds(REPLAY_PAUSE_TIMER);
