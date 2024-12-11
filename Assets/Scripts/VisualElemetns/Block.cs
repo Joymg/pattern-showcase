@@ -1,4 +1,6 @@
+using Joymg.Utils;
 using Shapes;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,10 +18,10 @@ namespace Joymg.VisualElements
 
         #region Fields
         public Label Title;
-        public Vector2 Size;
         public Rectangle Parent;
-        public Vector2 Position => Parent.transform.TransformPoint((Vector2)transform.localPosition);
-        private Vector2 ScaledSize => Size * transform.localScale;
+        public Color BorderColor;
+        public Vector2 Position => Parent != null ? Parent.transform.TransformPoint((Vector2)transform.localPosition) : transform.position;
+        private Vector2 ScaledSize => transform.localScale;
         public Vector2 RectTopLeftCorner => Position.AddToX(-(ScaledSize / 2).x).AddToY((ScaledSize / 2).y);
         public Vector2 RectBottomLeftCorner => Position.AddToX(-(ScaledSize / 2).x).AddToY(-(ScaledSize / 2).y);
 
@@ -45,21 +47,85 @@ namespace Joymg.VisualElements
             Draw.LineGeometry = LineGeometry.Flat2D;
             Draw.ThicknessSpace = ThicknessSpace.Pixels;
 
-            Rect rect = new Rect(RectBottomLeftCorner, Size);
+            Rect rect = new Rect(RectBottomLeftCorner, transform.position);
 
-
+            Draw.Rectangle(Position, transform.rotation, transform.localScale, RectPivot.Center, 0.2f, CurrentColor);
             Draw.RectangleBorder(Position,
                                  transform.rotation,
-                                 Size * transform.localScale,
+                                 transform.localScale,
                                  RectPivot.Center,
                                  6f,
                                  cornerRadius: 0.2f,
-                                 CurrentColor);
+                                 BorderColor);
 
             Draw.Push();
             Title.DrawElement(rect, RectTopLeftCorner);
             Draw.Pop();
         }
+
+        public override IEnumerator FadeIn(float duration, EasingType easing = EasingType.Linear, bool showChildren = true)
+        {
+            float t = 0;
+            Color bgStart = CurrentColor;
+            Color bgEnd = CurrentColor;
+            Color borderStart = BorderColor;
+            Color borderEnd = BorderColor;
+            borderEnd.a = 1;
+            bgEnd.a = 1;
+            while (t <= 1)
+            {
+                t += Time.deltaTime / duration;
+                float easet = EasingHelper.ApplyEasing(easing, t);
+                CurrentColor = Color.Lerp(bgStart, bgEnd, easet);
+                BorderColor = Color.Lerp(borderStart, borderEnd, easet);
+                if (!showChildren)
+                {
+                    yield return null;
+                    continue;
+                }
+
+                foreach (var child in Children)
+                {
+                    child.CurrentColor = CurrentColor;
+                }
+                yield return null;
+            }
+            CurrentColor = bgEnd;
+            BorderColor = borderEnd;
+        }
+
+        public override IEnumerator FadeOut(float duration, EasingType easing = EasingType.Linear, bool showChildren = true)
+        {
+            float t = 0;
+            Color bgStart = CurrentColor;
+            Color bgEnd = CurrentColor;
+            Color borderStart = BorderColor;
+            Color borderEnd = BorderColor;
+            borderEnd.a = 0;
+            bgEnd.a = 0;
+            while (t <= 1)
+            {
+                t += Time.deltaTime / duration;
+                float easet = EasingHelper.ApplyEasing(easing, t);
+                CurrentColor = Color.Lerp(bgStart, bgEnd, easet);
+                BorderColor = Color.Lerp(borderStart, borderEnd, easet);
+
+                if (!showChildren)
+                {
+                    yield return null;
+                    continue;
+                }
+
+                foreach (var child in Children)
+                {
+                    child.CurrentColor = CurrentColor;
+                }
+                yield return null;
+            }
+            CurrentColor = bgEnd;
+            BorderColor = borderEnd;
+        }
+
 
         #endregion
     }

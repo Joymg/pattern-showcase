@@ -1,4 +1,5 @@
 using Joymg.Utils;
+using log4net.Util;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -25,25 +26,29 @@ public abstract class VisualElement : MonoBehaviour
     public abstract void Init();
     public abstract void DrawElement();
 
-    public void Show()
+    public void Show(bool showChildren = true)
     {
         CurrentColor.a = 1;
+        if (!showChildren)
+            return;
         foreach (var child in Children)
         {
             child.CurrentColor.a = 1;
         }
     }
 
-    public void Hide()
+    public void Hide(bool showChildren = true)
     {
         CurrentColor.a = 0;
+        if (!showChildren)
+            return;
         foreach (var child in Children)
         {
             child.CurrentColor.a = 0;
         }
     }
 
-    public IEnumerator FadeIn(float duration, EasingType easing = EasingType.Linear)
+    public virtual IEnumerator FadeIn(float duration, EasingType easing = EasingType.Linear, bool showChildren = true)
     {
         float t = 0;
         Color start = CurrentColor;
@@ -54,15 +59,22 @@ public abstract class VisualElement : MonoBehaviour
             t += Time.deltaTime / duration;
             float easet = EasingHelper.ApplyEasing(easing, t);
             CurrentColor = Color.Lerp(start, end, easet);
+            if (!showChildren)
+            {
+                yield return null;
+                continue;
+            }
+
             foreach (var child in Children)
             {
                 child.CurrentColor = CurrentColor;
             }
             yield return null;
         }
+        CurrentColor = end;
     }
 
-    public IEnumerator FadeOut(float duration, EasingType easing = EasingType.Linear)
+    public virtual IEnumerator FadeOut(float duration, EasingType easing = EasingType.Linear, bool showChildren = true)
     {
         float t = 0;
         Color start = CurrentColor;
@@ -73,12 +85,18 @@ public abstract class VisualElement : MonoBehaviour
             t += Time.deltaTime / duration;
             float easet = EasingHelper.ApplyEasing(easing, t);
             CurrentColor = Color.Lerp(start, end, easet);
+            if (!showChildren)
+            {
+                yield return null;
+                continue;
+            }
             foreach (var child in Children)
             {
                 child.CurrentColor = CurrentColor;
             }
             yield return null;
         }
+        CurrentColor = end;
     }
 
 
@@ -94,6 +112,7 @@ public abstract class VisualElement : MonoBehaviour
             transform.position = Vector2.LerpUnclamped(start, end, easet);
             yield return null;
         }
+        transform.position = end;
     }
     public IEnumerator MoveCircularTo(Vector2 position, float duration, EasingType easing = EasingType.Linear)
     {
@@ -112,6 +131,7 @@ public abstract class VisualElement : MonoBehaviour
             transform.position += (Vector3)center;
             yield return null;
         }
+        transform.position = end;
     }
 
     public IEnumerator Rotate(Quaternion rotation, float duration, EasingType easing = EasingType.Linear)
@@ -126,20 +146,20 @@ public abstract class VisualElement : MonoBehaviour
             transform.rotation = Quaternion.LerpUnclamped(start, end, easet);
             yield return null;
         }
+        transform.rotation = end;
     }
 
-    public IEnumerator Scale(Vector3 initialScale, float scaleFactor, float duration, EasingType easing = EasingType.Linear)
+    public IEnumerator Scale(Vector3 initialScale, Vector3 endScale, float duration, EasingType easing = EasingType.Linear)
     {
         float t = 0;
-        Vector3 start = initialScale;
-        Vector3 end = start == Vector3.zero ? start + Vector3.one * scaleFactor : start * scaleFactor;
         while (t <= 1)
         {
             t += Time.deltaTime / duration;
             float easet = EasingHelper.ApplyEasing(easing, t);
-            transform.localScale = Vector3.LerpUnclamped(start, end, easet);
+            transform.localScale = Vector3.LerpUnclamped(initialScale, endScale, easet);
             yield return null;
         }
+        transform.localScale = endScale;
     }
 
     public IEnumerator Bounce(Vector3 originalSize, float scaleFactor, float duration, EasingType easing = EasingType.Linear)
@@ -157,6 +177,7 @@ public abstract class VisualElement : MonoBehaviour
                 Vector3.Lerp(end, start, easet * 2);
             yield return null;
         }
+        transform.localScale = start;
     }
 
     public VisualElement Duplicate()

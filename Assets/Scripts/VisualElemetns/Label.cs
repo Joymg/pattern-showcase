@@ -17,7 +17,7 @@ namespace Joymg.VisualElements
 
         #region Fields
         public Vector2 Position;
-        public float FontSize;
+        public float FontSize = 3;
         public string Text;
         private Vector2 offset =new Vector2 (0.2f, 0.4f);
         #endregion
