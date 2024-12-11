@@ -83,7 +83,8 @@ namespace Joymg.Patterns.Command
             _wallSpawner.Init(map, new char[]{'#'});
             _boxSpawner.Init(map, new char[]{'$','*'});
 
-            for (int i = 0; i < map.Cells.Length; i++)
+            int height = map.Cells.Length;
+            for (int i = 0; i < height; i++)
             {
                 int width = map.Cells[i].Length;
                 for (int j = 0; j < width; j++)

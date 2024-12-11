@@ -21,11 +21,23 @@ namespace Joymg.Patterns.Command
         #region Fields
         public Rectangle background;
         public Block inputBlock;
+        public Block wBlock;
+        public Block aBlock;
+        public Block sBlock;
+        public Block dBlock;
+
         public Block commandBlock;
         public Block undoListBlock;
         public Block redoListBlock;
         public List<VisualElement> temporalVisualElements;
         public bool activate;
+
+        public int differences;
+        public bool FirstInput = true;
+        public Direction CurrentTriggeredDirection;
+        public Direction LastTriggeredDirection;
+
+        public int test = 0;
 
         #endregion
 
@@ -33,21 +45,28 @@ namespace Joymg.Patterns.Command
 
         private void Start()
         {
+
+            GameManager.Instance.upExecute += OnInputPressed;
+            GameManager.Instance.rightExecute += OnInputPressed;
+            GameManager.Instance.downExecute += OnInputPressed;
+            GameManager.Instance.leftExecute += OnInputPressed;
             temporalVisualElements = new List<VisualElement>();
             inputBlock.Init();
+            wBlock.Init();
+            aBlock.Init();
+            sBlock.Init();
+            dBlock.Init();
             commandBlock.Init();
             undoListBlock.Init();
             redoListBlock.Init();
+
             commandBlock.Hide();
         }
         private void Update()
         {
-            if (Input.GetMouseButtonDown(0))
-                StartCoroutine(Execute());
             if (Input.GetMouseButtonDown(1))
             {
-                commandBlock.transform.position = inputBlock.Position.AddToY(-0.3f);
-                commandBlock.transform.localScale = Vector3.one;
+                test++;
             }
             //StartCoroutine(inputBlock.FadeOut(3f,Utils.EasingType.Bounce));
         }
@@ -66,9 +85,14 @@ namespace Joymg.Patterns.Command
 
 
                 inputBlock.DrawElement();
-                commandBlock.DrawElement();
+                wBlock.DrawElement();
+                aBlock.DrawElement();
+                sBlock.DrawElement();
+                dBlock.DrawElement();
                 undoListBlock.DrawElement();
                 redoListBlock.DrawElement();
+
+                commandBlock.DrawElement();
 
                 foreach (var tmp in temporalVisualElements)
                 {
@@ -77,39 +101,80 @@ namespace Joymg.Patterns.Command
             }
         }
 
-        private IEnumerator Execute()
+        private IEnumerator Execute(Block block)
         {
-            StartCoroutine(commandBlock.FadeIn(1));
-            yield return StartCoroutine(commandBlock.Scale(Vector3.one * 0.8f, 1/0.8f, 2f, EasingType.EaseOutCubic));
+            commandBlock.transform.position = block.Position;
 
-            Vector2 downPosition = new Vector3(commandBlock.transform.position.x, undoListBlock.transform.position.y + 1f);
-            Vector2 rightPosition = new Vector3(commandBlock.transform.position.x + 1f, undoListBlock.transform.position.y);
+            StartCoroutine(block.Bounce(block.transform.localScale, 1.2f, 0.5f, EasingType.EaseInExp));
+            yield return new WaitForSeconds(0.25f);
+
+            StartCoroutine(commandBlock.FadeIn(1, EasingType.EaseInOutCubic, false));
+            yield return StartCoroutine(commandBlock.Scale(Vector3.one * 0.8f, Vector3.one / 0.8f, 1f, EasingType.EaseOutCubic));
+
+
+
+            if (!RepeatingInput() && differences <= 1)
+            {
+                yield return StartCoroutine(commandBlock.MoveTo(
+                commandBlock.Parent.transform.position,
+                1f,
+                EasingType.EaseOutQuad));
+
+                StartCoroutine(commandBlock.Scale(commandBlock.transform.localScale, new Vector2(9, 10), 1f, EasingType.EaseOutBack));
+                yield return new WaitForSeconds(0.2f);
+                yield return StartCoroutine(commandBlock.Title.FadeIn(0.4f, EasingType.EaseInOutQuad));
+                yield return new WaitForSeconds(0.4f);
+
+                while (test < 1)
+                {
+                    yield return null;
+                }
+
+                StartCoroutine(commandBlock.Scale(commandBlock.transform.localScale, Vector3.one, 1f, EasingType.EaseInBack));
+                yield return new WaitForSeconds(0.2f);
+                yield return StartCoroutine(commandBlock.Title.FadeOut(0.4f, EasingType.EaseInOutQuad));
+                yield return new WaitForSeconds(0.6f);
+            }
+
+
+            Vector2 downPosition = new Vector3(commandBlock.transform.position.x, undoListBlock.transform.position.y + 1f - 0.3f);
+            Vector2 rightPosition = new Vector3(commandBlock.transform.position.x, undoListBlock.transform.position.y - 0.3f);
+
             yield return StartCoroutine(commandBlock.MoveTo(
                 downPosition.AddToY(-0.3f),
-                1f,
-                Utils.EasingType.EaseInQuad));
-            yield return StartCoroutine(commandBlock.MoveCircularTo(
-                rightPosition.AddToY(-0.3f),
-                .1f));
+                .8f,
+                EasingType.EaseInQuad));
 
             Block dupCommand = (Block)commandBlock.Duplicate();
             dupCommand.transform.SetPositionAndRotation(commandBlock.transform.position, commandBlock.transform.rotation);
             temporalVisualElements.Add(dupCommand);
+            StartCoroutine(commandBlock.MoveCircularTo(
+                rightPosition.AddToX(-1f),
+                .1f));
+            yield return StartCoroutine(dupCommand.MoveCircularTo(
+                rightPosition.AddToX(1f),
+                .1f));
+
 
             StartCoroutine(commandBlock.MoveTo(
-                undoListBlock.Position.AddToY(-0.3f),
-                .1f,
-                Utils.EasingType.EaseOutQuad));
-            yield return StartCoroutine(dupCommand.MoveTo(
-                redoListBlock.Position.AddToY(-0.3f),
+                undoListBlock.Position,
                 .8f,
-                Utils.EasingType.EaseOutBack));
+                EasingType.EaseOutQuad));
+            yield return StartCoroutine(dupCommand.MoveTo(
+                redoListBlock.Position,
+                .8f,
+                EasingType.EaseOutQuad));
 
 
-            StartCoroutine(commandBlock.Scale(commandBlock.transform.localScale, 1.2f, 0.2f, EasingType.EaseInOutExp));
-            yield return StartCoroutine(dupCommand.Scale(dupCommand.transform.localScale, 1.2f, 0.2f, EasingType.EaseInOutExp));
+            while (test < 3)
+            {
+                yield return null;
+            }
 
-            
+            StartCoroutine(commandBlock.Scale(commandBlock.transform.localScale, commandBlock.transform.localScale * 1.2f, 0.2f, EasingType.EaseInOutExp));
+            yield return StartCoroutine(dupCommand.Scale(dupCommand.transform.localScale, commandBlock.transform.localScale * 1.2f, 0.2f, EasingType.EaseInOutExp));
+
+
             /*StartCoroutine(undoListBlock.Scale(undoListBlock.transform.localScale, 1.3f, 0.1f, EasingType.EaseInBack));
             yield return StartCoroutine(redoListBlock.Scale(redoListBlock.transform.localScale, 1.3f, 0.1f, EasingType.EaseInBack));
 
@@ -117,8 +182,8 @@ namespace Joymg.Patterns.Command
             StartCoroutine(undoListBlock.Scale(undoListBlock.transform.localScale, 1 / 1.3f, 0.1f, EasingType.EaseOutBack));
             yield return StartCoroutine(redoListBlock.Scale(redoListBlock.transform.localScale, 1 / 1.3f, 0.1f, EasingType.EaseOutBack));*/
 
-            StartCoroutine(commandBlock.FadeOut(1,EasingType.EaseInOutCubic));
-            StartCoroutine(dupCommand.FadeOut(1,EasingType.EaseInOutCubic));
+            StartCoroutine(commandBlock.FadeOut(1, EasingType.EaseInOutCubic, false));
+            StartCoroutine(dupCommand.FadeOut(1, EasingType.EaseInOutCubic, false));
             yield return new WaitForSeconds(0.2f);
 
             StartCoroutine(undoListBlock.Bounce(undoListBlock.transform.localScale, 1.2f, 0.4f, EasingType.EaseInQuad));
@@ -126,7 +191,43 @@ namespace Joymg.Patterns.Command
 
             temporalVisualElements.Remove(dupCommand);
             Destroy(dupCommand.gameObject);
+            FirstInput = false;
+        }
 
+        public void OnInputPressed(Direction direction)
+        {
+            LastTriggeredDirection = CurrentTriggeredDirection;
+            CurrentTriggeredDirection = direction;
+            
+            Block block;
+            switch (direction)
+            {
+                case Direction.Right:
+                    block = dBlock;
+                    break;
+                case Direction.Down:
+                    block = sBlock;
+                    break;
+                case Direction.Left:
+                    block = aBlock;
+                    break;
+                default:
+                    block = wBlock;
+                    break;
+            }
+
+            StartCoroutine(Execute(block));
+            
+        }
+
+        private bool RepeatingInput()
+        {
+            if (FirstInput)
+                return false;
+            bool sameInput = LastTriggeredDirection == CurrentTriggeredDirection;
+            if (!sameInput)
+                differences++;
+            return sameInput;
         }
 
         #endregion
