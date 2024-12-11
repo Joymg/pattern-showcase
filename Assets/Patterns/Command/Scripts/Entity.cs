@@ -1,6 +1,7 @@
 using Joymg.Utils;
 using System.Collections;
 using UnityEngine;
+using TMPro;
 
 // Author : Joy
 
@@ -20,12 +21,18 @@ namespace Joymg.Patterns.Command
         #region Fields
         private SpriteRenderer spriteRenderer;
         [SerializeField] protected Coordinates _coordinates;
+        [SerializeField] protected TextMeshProUGUI debug;
         public Coordinates Coordinates => _coordinates;
 
-        public SpriteRenderer SpriteRenderer  => spriteRenderer; 
+        public SpriteRenderer SpriteRenderer => spriteRenderer;
         #endregion
 
         #region Unity Methods
+
+        private void Update()
+        {
+            debug.text = _coordinates.ToString();
+        }
         #endregion
 
         #region Methods
@@ -49,7 +56,7 @@ namespace Joymg.Patterns.Command
             }
             transform.position = end;
         }
-        
+
         public void MoveTowards(Vector3 direction)
         {
             transform.Translate(direction * STEP_DISTANCE);
