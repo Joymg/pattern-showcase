@@ -9,15 +9,15 @@ using UnityEngine.TextCore.Text;
 
 namespace Joymg.Patterns.Command
 {
-    [System.Serializable]
+    [Serializable]
     public class Map
     {
-        private Cell[][] cells;
+        private Cell[][] _cells;
         private readonly string _startingMap;
-        public Cell[][] Cells => cells;
+        public Cell[][] Cells => _cells;
         public List<Cell> goals;
         public List<Entity> entities;
-        public int Height => cells.Length;
+        public int Height => _cells.Length;
 
         public Map(string startingMap)
         {
@@ -26,10 +26,10 @@ namespace Joymg.Patterns.Command
             goals = new List<Cell>();
 
             string[] parts = startingMap.Split('\n');
-            cells = new Cell[parts.Length][];
+            _cells = new Cell[parts.Length][];
             for (int i = 0; i < parts.Length; i++)
             {
-                cells[i] = new Cell[parts[i].Length];
+                _cells[i] = new Cell[parts[i].Length];
                 for (int j = 0; j < parts[i].Length; j++)
                 {
                     CreateCell(i, j, parts[i][j]);
@@ -39,7 +39,7 @@ namespace Joymg.Patterns.Command
 
         private void CreateCell(int x, int y, char character)
         {
-            Cell cell = cells[x][y] = new Cell(new Coordinates(x, y), character, this);
+            Cell cell = _cells[x][y] = new Cell(new Coordinates(x, y), character, this);
             if (character is '.' or '+' or '*')
             {
                 goals.Add(cell);
@@ -48,13 +48,13 @@ namespace Joymg.Patterns.Command
 
         public Cell GetCell(Coordinates coordinates)
         {
-            return !AreValidCoordinates(coordinates) ? null : cells[coordinates.X][coordinates.Y];
+            return !AreValidCoordinates(coordinates) ? null : _cells[coordinates.X][coordinates.Y];
         }
 
         private bool AreValidCoordinates(Coordinates coordinates)
         {
-            return coordinates.X >= 0 && coordinates.X < cells.Length && coordinates.Y >= 0 &&
-                   coordinates.Y < cells[coordinates.X].Length;
+            return coordinates.X >= 0 && coordinates.X < _cells.Length && coordinates.Y >= 0 &&
+                   coordinates.Y < _cells[coordinates.X].Length;
         }
 
         public bool TryGetCell(Coordinates coordinates, out Cell cell)
@@ -65,31 +65,31 @@ namespace Joymg.Patterns.Command
                 return false;
             }
 
-            cell = cells[coordinates.X][coordinates.Y];
+            cell = _cells[coordinates.X][coordinates.Y];
             return true;
         }
 
         public void Swap(Cell a, Cell b)
         {
-            Cell.CellType aCelltype = a.CellType();
-            Cell.CellType bCelltype = b.CellType();
+            Cell.CellType aCellType = a.CellType();
+            Cell.CellType bCellType = b.CellType();
 
-            if (aCelltype == Cell.CellType.Player && bCelltype == Cell.CellType.Goal)
+            if (aCellType == Cell.CellType.Player && bCellType == Cell.CellType.Goal)
             {
                 a.character = MapExtensions.Lookup.First(entry => entry.Value == Cell.CellType.Floor).Key;
                 b.character = MapExtensions.Lookup.First(entry => entry.Value == Cell.CellType.PlayerOnGoal).Key;
             }
-            else if (aCelltype == Cell.CellType.PlayerOnGoal && bCelltype == Cell.CellType.Floor)
+            else if (aCellType == Cell.CellType.PlayerOnGoal && bCellType == Cell.CellType.Floor)
             {
                 a.character = MapExtensions.Lookup.First(entry => entry.Value == Cell.CellType.Goal).Key;
                 b.character = MapExtensions.Lookup.First(entry => entry.Value == Cell.CellType.Player).Key;
             }
-            else if (aCelltype == Cell.CellType.Box && bCelltype == Cell.CellType.Goal)
+            else if (aCellType == Cell.CellType.Box && bCellType == Cell.CellType.Goal)
             {
                 a.character = MapExtensions.Lookup.First(entry => entry.Value == Cell.CellType.Floor).Key;
                 b.character = MapExtensions.Lookup.First(entry => entry.Value == Cell.CellType.BoxOnGoal).Key;
             }
-            else if (aCelltype == Cell.CellType.BoxOnGoal && bCelltype == Cell.CellType.Floor)
+            else if (aCellType == Cell.CellType.BoxOnGoal && bCellType == Cell.CellType.Floor)
             {
                 a.character = MapExtensions.Lookup.First(entry => entry.Value == Cell.CellType.Goal).Key;
                 b.character = MapExtensions.Lookup.First(entry => entry.Value == Cell.CellType.Box).Key;
@@ -101,10 +101,10 @@ namespace Joymg.Patterns.Command
 
         }
 
-        public bool TryMovingEntitiesInDirection(List<Entity> _controlledEntities, Direction direction, out List<Entity> movingEntities)
+        public bool TryMovingEntitiesInDirection(List<Entity> controlledEntities, Direction direction, out List<Entity> movingEntities)
         {
             movingEntities = new List<Entity>();
-            foreach (Entity entity in _controlledEntities)
+            foreach (Entity entity in controlledEntities)
             {
                 Cell currentCell = GetCell(entity.Coordinates.Reverse());
 
@@ -153,11 +153,11 @@ namespace Joymg.Patterns.Command
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < cells.Length; i++)
+            for (int i = 0; i < _cells.Length; i++)
             {
-                for (int j = 0; j < cells[i].Length; j++)
+                for (int j = 0; j < _cells[i].Length; j++)
                 {
-                    sb.Append(cells[i][j].character);
+                    sb.Append(_cells[i][j].character);
                 }
                 sb.Append('\n');
             }
@@ -170,13 +170,13 @@ namespace Joymg.Patterns.Command
             foreach (Cell goal in goals)
             {
                 if (GetCell(goal.coordinates).CellType() != Cell.CellType.BoxOnGoal)
-                return false;
+                    return false;
 
             }
             return true;
         }
 
-        [System.Serializable]
+        [Serializable]
         public class Cell
         {
             public enum CellType
@@ -192,7 +192,7 @@ namespace Joymg.Patterns.Command
 
             public Coordinates coordinates;
             public char character;
-            private Map _map;
+            [NonSerialized]private Map _map;
 
             public Cell(Coordinates coordinates, char character, Map map)
             {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Joymg.Patterns.Command
@@ -47,6 +48,12 @@ namespace Joymg.Patterns.Command
 
             return coordinates.X == _x && coordinates.Y == _y;
         }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(_x, _y);
+        }
+
 
         public override string ToString()
         {

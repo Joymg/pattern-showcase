@@ -38,6 +38,7 @@ namespace Joymg.Patterns.Command
         public Direction LastTriggeredDirection;
 
         public int test = 0;
+        private Coroutine _startCoroutine;
 
         #endregion
 
@@ -215,9 +216,9 @@ namespace Joymg.Patterns.Command
                     block = wBlock;
                     break;
             }
-
-            StartCoroutine(Execute(block));
-            
+            if (_startCoroutine != null)
+                StopCoroutine(_startCoroutine);
+            _startCoroutine = StartCoroutine(Execute(block));
         }
 
         private bool RepeatingInput()
